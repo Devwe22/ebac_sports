@@ -1,24 +1,41 @@
-import { Produto as ProdutoType } from '../../App'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import {
+  adicionarAoCarrinho,
+  adicionarAosFavoritos,
+  Produto as ProdutoType
+} from '../../store/slices/carrinhoSlice'
 import * as S from './styles'
 
 type Props = {
   produto: ProdutoType
-  aoComprar: (produto: ProdutoType) => void
-  favoritar: (produto: ProdutoType) => void
   estaNosFavoritos: boolean
 }
 
-export const paraReal = (valor: number) =>
+export const paraReal = (valor: number): string =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
     valor
   )
 
-const ProdutoComponent = ({
-  produto,
-  aoComprar,
-  favoritar,
-  estaNosFavoritos
-}: Props) => {
+const ProdutoComponent = ({ produto, estaNosFavoritos }: Props) => {
+  const dispatch = useAppDispatch()
+  const { itens } = useAppSelector((state) => state.carrinho)
+
+  const handleAdicionarAoCarrinho = (): void => {
+    const produtoJaNoCarrinho = itens.find(
+      (item: ProdutoType) => item.id === produto.id
+    )
+
+    if (produtoJaNoCarrinho) {
+      alert('Item já adicionado')
+    } else {
+      dispatch(adicionarAoCarrinho(produto))
+    }
+  }
+
+  const handleFavoritar = (): void => {
+    dispatch(adicionarAosFavoritos(produto))
+  }
+
   return (
     <S.Produto>
       <S.Capa>
@@ -28,12 +45,12 @@ const ProdutoComponent = ({
       <S.Prices>
         <strong>{paraReal(produto.preco)}</strong>
       </S.Prices>
-      <S.BtnComprar onClick={() => favoritar(produto)} type="button">
+      <S.BtnComprar onClick={handleFavoritar} type="button">
         {estaNosFavoritos
           ? '- Remover dos favoritos'
           : '+ Adicionar aos favoritos'}
       </S.BtnComprar>
-      <S.BtnComprar onClick={() => aoComprar(produto)} type="button">
+      <S.BtnComprar onClick={handleAdicionarAoCarrinho} type="button">
         Adicionar ao carrinho
       </S.BtnComprar>
     </S.Produto>
